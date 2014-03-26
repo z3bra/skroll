@@ -29,6 +29,7 @@ static bool loop = false;   /* wether to loop text or not */
 static float delay = 1;     /* scroll speed, in usec */
 static int number = 10;     /* number of chars to be shown at the same time */
 
+/* fills a string with spaces if it has less than <num> chars */
 void zero_fill (char **str, size_t num)
 {
     int c;
@@ -36,17 +37,22 @@ void zero_fill (char **str, size_t num)
 
     s = strnlen((*str),num);
 
+    /* check every char of the buffer */
     for (c=0; c<num; ++c) {
+        /* if the char is a new line, or if the string is to small */
         if ( (*str)[c] == '\n' || c >= s ) {
-           (*str)[c] = ' ';
+            /* replace current char with a space */
+            (*str)[c] = ' ';
         }
     }
 
+    /* double-check your pointers */
     (*str)[num] = 0;
 
     return; /* void */
 }
 
+/* scroll <input> to stdout */
 void skroll (const char *input)
 {
     int offset = 0;
@@ -57,30 +63,41 @@ void skroll (const char *input)
 
     do {
         for (offset=0; input[offset]; ++offset) {
+            /* copy the number of char we want to the buffer */
             strncpy(buf, input + offset, number-1);
+
+            /* fill missing chars with spaces */
             zero_fill(&buf, number);
+
+            /* print out the buffer ! */
             printf("\r%s", buf);
 
+            /* if we want a new line, let's do it here */
             if (newline) putc('\n', stdout);
 
+            /* flush stdout, and wait for the next step */
             fflush(stdout);
             usleep(delay*1000000);
         }
+    /* magnolia ? FOWEVA ! */
     } while(loop);
 
+    /* And with a new line, no matter what */
     putc('\n', stdout);
 
     return; /* void */
 }
 
+/* returns a char that contains the input bufferized */
 const char *bufferize (FILE *stream)
 {
     char *buf = NULL;
 
+    /* allocate space to store the input */
     if ( !(buf = calloc (BUFFER_SIZE, sizeof(char))) ) return NULL;
-
     buf[BUFFER_SIZE] = 0;
 
+    /* OMG, NO MORE SPACE LEFT ON DEVICE (or no more input, in fact) */
     if ( feof(stream) || !fgets(buf, BUFFER_SIZE, stream) ) {
         free (buf);
         return NULL;
@@ -106,6 +123,7 @@ int main (int argc, char **argv)
         }
     }
 
+    /* SCROLL ALL THE TEXT! */
     while( (buf = bufferize(stdin)) != NULL ) {
         skroll(buf);
     }

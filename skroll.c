@@ -24,6 +24,7 @@
 
 #define BUFFER_SIZE 512
 
+static bool newline = false;/* print a new line after each step */
 static bool loop = false;   /* wether to loop text or not */
 static float delay = 1;     /* scroll speed, in usec */
 static int number = 10;     /* number of chars to be shown at the same time */
@@ -60,6 +61,8 @@ void skroll (const char *input)
             zero_fill(&buf, number);
             printf("\r%s", buf);
 
+            if (newline) putc('\n', stdout);
+
             fflush(stdout);
             usleep(delay*1000000);
         }
@@ -91,14 +94,15 @@ int main (int argc, char **argv)
     char ch;
     const char *buf = NULL;
 
-    while ( (ch = getopt(argc, argv, "hd:ln:")) != -1 ) {
+    while ( (ch = getopt(argc, argv, "hd:ln:r")) != -1 ) {
         switch (ch) {
             case 'h':
-                printf("usage: %s [-hl] [-d delay] [-n number]", argv[0]);
+                printf("usage: %s [-hlr] [-d delay] [-n number]", argv[0]);
                 break;
             case 'd': delay = strtof(optarg, NULL); break;
             case 'n': number = strtoul(optarg, NULL, 10); break;
             case 'l': loop = true; break;
+            case 'r': newline = true; break;
         }
     }
 

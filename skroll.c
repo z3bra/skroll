@@ -114,7 +114,8 @@ int main (int argc, char **argv)
     while ( (ch = getopt(argc, argv, "hd:ln:r")) != -1 ) {
         switch (ch) {
             case 'h':
-                printf("usage: %s [-hlr] [-d delay] [-n number]", argv[0]);
+                printf("usage: %s [-hlr] [-d delay] [-n number]\n", argv[0]);
+                exit(0);
                 break;
             case 'd': delay = strtof(optarg, NULL); break;
             case 'n': number = strtoul(optarg, NULL, 10); break;

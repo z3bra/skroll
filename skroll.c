@@ -26,7 +26,7 @@
 
 static bool newline = false;/* print a new line after each step */
 static bool loop = false;   /* wether to loop text or not */
-static float delay = 1;     /* scroll speed, in usec */
+static float delay = 0.5;   /* scroll speed, in seconds */
 static int number = 10;     /* number of chars to be shown at the same time */
 
 /* fills a string with spaces if it has less than <num> chars */
@@ -52,22 +52,68 @@ void zero_fill (char **str, size_t num)
     return; /* void */
 }
 
+/* 
+ * pad a string with <num> spaces, and append chars from <str> to it, until its
+ * lenght is <len>
+ */ 
+void zero_pad (char **pad, const char *str, size_t len, size_t num)
+{
+    /* fill the memory with zeros */
+    memset ( (*pad), 0, len );
+
+    /* pad the string with 0x20 (space char) */
+    memset ( (*pad), 0x20, num );
+
+    /* append char of the *original* string at the end of the pad */
+    strncat ( (*pad), str, len );
+
+    /* fill the stirng with spaces, in case it's too short */
+    zero_fill ( pad, len );
+
+    return; /* void */
+}
+
 /* scroll <input> to stdout */
 void skroll (const char *input)
 {
-    int offset = 0;
+    int offset, padder;
     char *buf = NULL;
 
     if ( !(buf = calloc (number, sizeof(char))) ) return;
     buf[number] = 0;
 
+    /* main loop. will loop forever if run with -l */
     do {
-        for (offset=0; input[offset]; ++offset) {
-            /* copy the number of char we want to the buffer */
-            strncpy(buf, input + offset, number-1);
 
-            /* fill missing chars with spaces */
-            zero_fill(&buf, number);
+        offset = 0;
+        padder = number;
+
+        /* loop executed on each step, after <delay> seconds */
+        while ( input[offset] != 0 ) {
+            /*
+             * There are two different parts: padding, and filling.
+             * padding is adding spaces at the beginning to simulate text
+             * arrival from the right. filling is adding spaces at the end of
+             * the text so that the currently displayed text has always the
+             * same size, even if there is only a single char
+             */
+            if ( padder > 0 ) {
+                /* 
+                 * While the first letter has not reach the left edge, pad the
+                 * text, decrementing padding after each step.
+                 */
+                zero_pad(&buf, input, number, padder);
+                padder--;
+            } else
+            /* Once padding is finished, we start "hiding" text to the left */
+            if ( offset < number ) {
+                /* copy the number of char we want to the buffer */
+                strncpy(buf, input + offset, number-1);
+
+                /* fill missing chars with spaces */
+                zero_fill(&buf, number);
+                offset++;
+            }
 
             /* print out the buffer ! */
             printf("\r%s", buf);

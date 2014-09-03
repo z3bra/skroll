@@ -1,26 +1,40 @@
-.TH MAN 1 2014-04-26 "Linux" "skroll"
+.TH skroll 1 2014-09-03 "v3.0" "Skroll nanual"
 .SH NAME
-skroll - make a given text scroll
+skroll \- make a given text scroll
 .SH SYNOPSIS
 .B skroll
-.RI [\| \-hlr\| ]\ [\| -n\ num\| ]\ [\| -d\ delay\| ]
+.RI [ \-hlr ]\ [ \-n\ num ]\ [ \-d\ delay ]
 .SH DESCRIPTION
 .PP
 .B skroll
-reads text on stdin and make it scroll to stdout
+reads text from stdin and make it scroll to stdout.
 .TP
-.B \-d delay
-Make scroll steps last <delay> seconds
 .B \-h
-Display a help text
+Displays a help text
+.TP
 .B \-l
 Loop text forever
-.B \-n num
-Show <num> char at a time
+.TP
 .B \-r
-Output a new line after each step
-.SH BUGS
-.PP
-No bugs known actually. Feel free to report them at willy@mailoo.org
+Output a newline after each step
+.TP
+.BI \-n\ <num>
+Show <num> char at a time (defaults to 10)
+.TP
+.BI \-d\ <delay>
+Define scrolling speed, in second/step (defaults to 0.5)
+.SH EXAMPLES
+.TP
+\(buLoop indefinitely:
+\fBecho\fR "Hello world!" | \fBskroll\fR  \-l
+.TP
+\(buOutput \fIX\fR characters at a time:
+\fBskroll\fR \-n \fIX\fR < \fIFILE\fR
+.TP
+\(buRotate a step every \fIX\fR seconds:
+\fBmpc\fR current \-\-wait | \fBskroll\fR -d \fIX\fR
+.SH REPORTING BUGS
+If you encounter any bugs, feel free to report them at \fIwilly@mailoo.org\fR
 .SH AUTHORS / CONTRIBUTORS
 Willy Goiffon is the main author.
+Dave Chesser helped with the man page

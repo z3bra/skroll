@@ -52,14 +52,9 @@ void zero_fill (char **str, size_t num)
     return; /* void */
 }
 
-/* 
- * pad a string with <num> spaces, and append chars from <str> to it, until its
- * lenght is <len>
- */ 
+/* pad string <pad> string with <num> spaces and fill out to <len> with <str> */
 void zero_pad (char **pad, const char *str, size_t len, size_t num)
 {
-    /* fill the memory with zeros */
-    memset ( (*pad), 0, len );
 
     /* pad the string with 0x20 (space char) */
     memset ( (*pad), 0x20, num );
@@ -90,6 +85,10 @@ void skroll (const char *input)
 
         /* loop executed on each step, after <delay> seconds */
         while ( input[offset] != 0 ) {
+
+            /* fill the memory with zeros */
+            memset ( buf, 0, number );
+
             /*
              * There are two different parts: padding, and filling.
              * padding is adding spaces at the beginning to simulate text
@@ -104,11 +103,10 @@ void skroll (const char *input)
                  */
                 zero_pad(&buf, input, number, padder);
                 padder--;
-            } else
             /* Once padding is finished, we start "hiding" text to the left */
-            if ( offset < number ) {
+            } else {
                 /* copy the number of char we want to the buffer */
-                strncpy(buf, input + offset, number-1);
+                strncpy(buf, input + offset, number);
 
                 /* fill missing chars with spaces */
                 zero_fill(&buf, number);

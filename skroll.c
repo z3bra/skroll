@@ -26,95 +26,48 @@
 
 static bool newline = false;/* print a new line after each step */
 static bool loop = false;   /* wether to loop text or not */
-static float delay = 0.5;   /* scroll speed, in seconds */
-static int number = 10;     /* number of chars to be shown at the same time */
-
-/* fills a string with spaces if it has less than <num> chars */
-void zero_fill (char **str, size_t num)
-{
-    int c;
-    size_t s;
-
-    s = strnlen((*str),num);
-
-    /* check every char of the buffer */
-    for (c=0; c<num; ++c) {
-        /* if the char is a new line, or if the string is to small */
-        if ( (*str)[c] == '\n' || c >= s ) {
-            /* replace current char with a space */
-            (*str)[c] = ' ';
-        }
-    }
-
-    /* double-check your pointers */
-    (*str)[num] = 0;
-
-    return; /* void */
-}
-
-/* pad string <pad> string with <num> spaces and fill out to <len> with <str> */
-void zero_pad (char **pad, const char *str, size_t len, size_t num)
-{
-
-    /* pad the string with 0x20 (space char) */
-    memset ( (*pad), 0x20, num );
-
-    /* append char of the *original* string at the end of the pad */
-    strncat ( (*pad), str, len );
-
-    /* fill the stirng with spaces, in case it's too short */
-    zero_fill ( pad, len );
-
-    return; /* void */
-}
+static float delay = 0.1;   /* scroll speed, in seconds */
+static int number = 20;     /* number of chars to be shown at the same time */
 
 /* scroll <input> to stdout */
 void skroll (const char *input)
 {
-    int offset, padder;
+    int offset, buflen = 0;
     char *buf = NULL;
 
-    if ( !(buf = calloc (number, sizeof(char))) ) return;
-    buf[number] = 0;
+    buflen = strnlen( input, BUFFER_SIZE ) + ( number * 2 ) + 1;
+
+    buf = calloc( buflen, sizeof( char ) );
+
+    if ( buf == NULL )
+    {
+        return;
+    }
+
+    /* initialize memory with "spaces" and null-terminate the buffer */
+    memset( buf, 0x20, buflen - 1 );
+    buf[ buflen - 1 ] = 0;
+
+    /* copy input at place `number` */
+    memcpy( buf + number, input, strlen( input ) );
+
+    /* remove \n from input string to sanitize output */
+    if ( buf[ number + strlen( input ) - 1 ] == '\n' )
+    {
+        buf[ number + strlen( input ) - 1 ] = 0x20; 
+    }
 
     /* main loop. will loop forever if run with -l */
     do {
 
         offset = 0;
-        padder = number;
 
         /* loop executed on each step, after <delay> seconds */
-        while ( input[offset] != 0 ) {
+        while ( buf [ offset + number ] != 0 ) {
 
-            /* fill the memory with zeros */
-            memset ( buf, 0, number );
-
-            /*
-             * There are two different parts: padding, and filling.
-             * padding is adding spaces at the beginning to simulate text
-             * arrival from the right. filling is adding spaces at the end of
-             * the text so that the currently displayed text has always the
-             * same size, even if there is only a single char
-             */
-            if ( padder > 0 ) {
-                /* 
-                 * While the first letter has not reach the left edge, pad the
-                 * text, decrementing padding after each step.
-                 */
-                zero_pad(&buf, input, number, padder);
-                padder--;
-            /* Once padding is finished, we start "hiding" text to the left */
-            } else {
-                /* copy the number of char we want to the buffer */
-                strncpy(buf, input + offset, number);
-
-                /* fill missing chars with spaces */
-                zero_fill(&buf, number);
-                offset++;
-            }
-
-            /* print out the buffer ! */
-            printf("\r%s", buf);
+            /* print out `number` characters from the buffer ! */
+            putc( '\r', stdout );
+            write( 1, buf + offset, number );
 
             /* if we want a new line, let's do it here */
             if (newline) putc('\n', stdout);
@@ -122,12 +75,10 @@ void skroll (const char *input)
             /* flush stdout, and wait for the next step */
             fflush(stdout);
             usleep(delay*1000000);
+            offset++;
         }
     /* magnolia ? FOWEVA ! */
     } while(loop);
-
-    /* And with a new line, no matter what */
-    putc('\n', stdout);
 
     return; /* void */
 }
@@ -138,8 +89,9 @@ const char *bufferize (FILE *stream)
     char *buf = NULL;
 
     /* allocate space to store the input */
-    if ( !(buf = calloc (BUFFER_SIZE, sizeof(char))) ) return NULL;
-    buf[BUFFER_SIZE] = 0;
+    if ( !(buf = calloc (BUFFER_SIZE + 1, sizeof(char))) ) return NULL;
+    /* buf[BUFFER_SIZE] = 0; */
+    memset( buf, 0, BUFFER_SIZE + 1 );
 
     /* OMG, NO MORE SPACE LEFT ON DEVICE (or no more input, in fact) */
     if ( feof(stream) || !fgets(buf, BUFFER_SIZE, stream) ) {
@@ -172,6 +124,9 @@ int main (int argc, char **argv)
     while( (buf = bufferize(stdin)) != NULL ) {
         skroll(buf);
     }
+
+    /* End with a new line, no matter what */
+    putc('\n', stdout);
 
     return 0;
 }

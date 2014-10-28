@@ -1,4 +1,12 @@
-include config.mk
+PREFIX:=/usr
+MANPREFIX:=${PREFIX}/share/man
+
+CC = cc
+LD= ${CC}
+RM = rm
+GZ = gzip
+CFLAGS = -Wall -pedantic
+LDFLAGS =
 
 .SUFFIXES: .c .o .gz
 .PHONY : all clean install uninstall

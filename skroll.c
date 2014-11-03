@@ -37,8 +37,8 @@ void skroll (const char *input)
     do
     {
         /*
-         * each step of the loop will print the buffer, one byte further after each step.
-         * using a carriage return, it makes the text scroll out. Magic..
+         * each step of the loop will print the buffer, one byte further after
+         * each step. using a carriage return, it makes the text scroll out.
          * leading/ending spaces are here to make sure that the text goes from
          * far right, and goes all the way to far left
          */
@@ -46,11 +46,10 @@ void skroll (const char *input)
         {
 
             /* print out `number` characters from the buffer ! */
-            putc('\r', stdout);
             write(1, input + offset, number);
 
-            /* if we want a new line, let's do it here */
-            if (newline) putc('\n', stdout);
+            /* if we want a new line, do it here, otherwise, carriage return */
+            putc(newline ? '\n' : '\r', stdout);
 
             /* flush stdout, and wait for the next step */
             fflush(stdout);

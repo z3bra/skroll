@@ -21,8 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
-
-#define BUFFER_SIZE 512
+#include <limits.h>
 
 static bool newline = false;/* print a new line after each step */
 static bool loop = false;   /* wether to loop text or not */
@@ -35,7 +34,7 @@ void skroll (const char *input)
     int offset, buflen = 0;
     char *buf = NULL;
 
-    buflen = strnlen( input, BUFFER_SIZE ) + ( number * 2 ) + 1;
+    buflen = strnlen( input, LINE_MAX ) + ( number * 2 ) + 1;
 
     buf = calloc( buflen, sizeof( char ) );
 
@@ -89,12 +88,12 @@ const char *bufferize (FILE *stream)
     char *buf = NULL;
 
     /* allocate space to store the input */
-    if ( !(buf = calloc (BUFFER_SIZE + 1, sizeof(char))) ) return NULL;
-    /* buf[BUFFER_SIZE] = 0; */
-    memset( buf, 0, BUFFER_SIZE + 1 );
+    if ( !(buf = calloc (LINE_MAX + 1, sizeof(char))) ) return NULL;
+    /* buf[LINE_MAX] = 0; */
+    memset( buf, 0, LINE_MAX + 1 );
 
     /* OMG, NO MORE SPACE LEFT ON DEVICE (or no more input, in fact) */
-    if ( feof(stream) || !fgets(buf, BUFFER_SIZE, stream) ) {
+    if ( feof(stream) || !fgets(buf, LINE_MAX, stream) ) {
         free (buf);
         return NULL;
     }

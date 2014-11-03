@@ -31,31 +31,7 @@ static int number = 20;     /* number of chars to be shown at the same time */
 /* scroll <input> to stdout */
 void skroll (const char *input)
 {
-    int offset, buflen = 0;
-    char *tmp, *buf = NULL;
-
-    /* 
-     * allocate a new buffer to hold our input PLUS number spaces at the
-     * start/end of the string
-     */ 
-    buflen = strnlen(input, LINE_MAX) + (number * 2) + 1;
-    if ((buf = calloc(buflen, sizeof(char))) == NULL)
-    {
-        return;
-    }
-
-    /* initialize memory with "spaces" and null-terminate the buffer */
-    memset(buf, ' ', buflen - 1);
-    buf[buflen - 1] = 0;
-
-    /* copy input at place `number` */
-    memcpy(buf + number, input, strlen(input));
-
-    /* remove \n from input string to sanitize output */
-    if ((tmp = strchr(buf, '\n')) != NULL)
-    {
-        tmp[0] = ' '; 
-    }
+    int offset = 0;
 
     /* main loop. will loop forever if run with -l */
     do
@@ -66,12 +42,12 @@ void skroll (const char *input)
          * leading/ending spaces are here to make sure that the text goes from
          * far right, and goes all the way to far left
          */
-        for (offset = 0; buf [offset + number] != 0; offset++)
+        for (offset = 0; input[offset + number] != 0; offset++)
         {
 
             /* print out `number` characters from the buffer ! */
             putc('\r', stdout);
-            write(1, buf + offset, number);
+            write(1, input + offset, number);
 
             /* if we want a new line, let's do it here */
             if (newline) putc('\n', stdout);
@@ -89,18 +65,42 @@ void skroll (const char *input)
 /* returns a char that contains the input bufferized */
 const char *bufferize (FILE *stream)
 {
-    char *buf = NULL;
+    int len = 0;
+    char *eol, *buf = NULL;
 
     /* allocate space to store the input */
     if (!(buf = calloc (LINE_MAX + 1, sizeof(char)))) { return NULL; }
-    /* buf[LINE_MAX] = 0; */
-    memset(buf, 0, LINE_MAX + 1);
+    memset(buf, ' ', LINE_MAX);
+    buf[LINE_MAX] = 0;
 
     /* OMG, NO MORE SPACE LEFT ON DEVICE (or no more input, in fact) */
-    if (feof(stream) || !fgets(buf, LINE_MAX, stream))
+    if (feof(stream) || !fgets(buf + number, LINE_MAX, stream))
     {
         free (buf);
         return NULL;
+    }
+
+    /*
+     * we need to remove trailings \n and \0 from input string to sanitize output.
+     * the buffer should now look like this:
+     * [          my input          \0           \0] 
+     *  |         |       |         |             `- last \0, to prevent segfaults
+     *  |         |       |          `- remaining spaces (up to LINE_MAX)
+     *  |         |        `- trailing spaces, to make the text croll to far left
+     *  |          `- the input itself, with \n and \0 removed from it
+     *   `- leading spaces, to make the text scroll from far right
+     */
+
+    /* get the size of the input (and thus, the position of the \0) */
+    len = strnlen(buf, LINE_MAX);
+    buf[len] = ' ';
+
+    /* terminate the string a bit further */
+    buf[len + number] = 0;
+
+    /* remove those silly \n from the input */
+    if ((eol = strchr(buf, '\n')) != NULL) {
+        eol[0] = ' ';
     }
 
     return buf;

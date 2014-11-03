@@ -32,41 +32,46 @@ static int number = 20;     /* number of chars to be shown at the same time */
 void skroll (const char *input)
 {
     int offset, buflen = 0;
-    char *buf = NULL;
+    char *tmp, *buf = NULL;
 
-    buflen = strnlen( input, LINE_MAX ) + ( number * 2 ) + 1;
-
-    buf = calloc( buflen, sizeof( char ) );
-
-    if ( buf == NULL )
+    /* 
+     * allocate a new buffer to hold our input PLUS number spaces at the
+     * start/end of the string
+     */ 
+    buflen = strnlen(input, LINE_MAX) + (number * 2) + 1;
+    if ((buf = calloc(buflen, sizeof(char))) == NULL)
     {
         return;
     }
 
     /* initialize memory with "spaces" and null-terminate the buffer */
-    memset( buf, 0x20, buflen - 1 );
-    buf[ buflen - 1 ] = 0;
+    memset(buf, ' ', buflen - 1);
+    buf[buflen - 1] = 0;
 
     /* copy input at place `number` */
-    memcpy( buf + number, input, strlen( input ) );
+    memcpy(buf + number, input, strlen(input));
 
     /* remove \n from input string to sanitize output */
-    if ( buf[ number + strlen( input ) - 1 ] == '\n' )
+    if ((tmp = strchr(buf, '\n')) != NULL)
     {
-        buf[ number + strlen( input ) - 1 ] = 0x20; 
+        tmp[0] = ' '; 
     }
 
     /* main loop. will loop forever if run with -l */
-    do {
-
-        offset = 0;
-
-        /* loop executed on each step, after <delay> seconds */
-        while ( buf [ offset + number ] != 0 ) {
+    do
+    {
+        /*
+         * each step of the loop will print the buffer, one byte further after each step.
+         * using a carriage return, it makes the text scroll out. Magic..
+         * leading/ending spaces are here to make sure that the text goes from
+         * far right, and goes all the way to far left
+         */
+        for (offset = 0; buf [offset + number] != 0; offset++)
+        {
 
             /* print out `number` characters from the buffer ! */
-            putc( '\r', stdout );
-            write( 1, buf + offset, number );
+            putc('\r', stdout);
+            write(1, buf + offset, number);
 
             /* if we want a new line, let's do it here */
             if (newline) putc('\n', stdout);
@@ -74,7 +79,6 @@ void skroll (const char *input)
             /* flush stdout, and wait for the next step */
             fflush(stdout);
             usleep(delay*1000000);
-            offset++;
         }
     /* magnolia ? FOWEVA ! */
     } while(loop);
@@ -88,12 +92,13 @@ const char *bufferize (FILE *stream)
     char *buf = NULL;
 
     /* allocate space to store the input */
-    if ( !(buf = calloc (LINE_MAX + 1, sizeof(char))) ) return NULL;
+    if (!(buf = calloc (LINE_MAX + 1, sizeof(char)))) { return NULL; }
     /* buf[LINE_MAX] = 0; */
-    memset( buf, 0, LINE_MAX + 1 );
+    memset(buf, 0, LINE_MAX + 1);
 
     /* OMG, NO MORE SPACE LEFT ON DEVICE (or no more input, in fact) */
-    if ( feof(stream) || !fgets(buf, LINE_MAX, stream) ) {
+    if (feof(stream) || !fgets(buf, LINE_MAX, stream))
+    {
         free (buf);
         return NULL;
     }
@@ -106,8 +111,10 @@ int main (int argc, char **argv)
     char ch;
     const char *buf = NULL;
 
-    while ( (ch = getopt(argc, argv, "hd:ln:r")) != -1 ) {
-        switch (ch) {
+    while ((ch = getopt(argc, argv, "hd:ln:r")) != -1)
+    {
+        switch (ch)
+        {
             case 'h':
                 printf("usage: %s [-hlr] [-d delay] [-n number]\n", argv[0]);
                 exit(0);
@@ -120,7 +127,8 @@ int main (int argc, char **argv)
     }
 
     /* SCROLL ALL THE TEXT! */
-    while( (buf = bufferize(stdin)) != NULL ) {
+    while((buf = bufferize(stdin)) != NULL)
+    {
         skroll(buf);
     }
 

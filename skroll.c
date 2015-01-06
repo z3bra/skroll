@@ -58,6 +58,8 @@ void skroll (const char *input)
     /* magnolia ? FOWEVA ! */
     } while(loop);
 
+    putc('\b', stdout);
+
     return; /* void */
 }
 

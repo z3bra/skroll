@@ -28,6 +28,12 @@ static bool loop = false;   /* wether to loop text or not */
 static float delay = 0.1;   /* scroll speed, in seconds */
 static int number = 20;     /* number of chars to be shown at the same time */
 
+/* return the len of an utf-8 character */
+int utf8_len(unsigned char c)
+{
+    return c<192 ? 0 : c<224 ? 1 : c<240 ? 2 : 3;
+}
+
 /* scroll <input> to stdout */
 void skroll (const char *input)
 {
@@ -44,6 +50,8 @@ void skroll (const char *input)
          */
         for (offset = 0; input[offset + number] != 0; offset++)
         {
+            /* increase the message's length in case of utf-8 chars */
+            number += utf8_len(input[offset + number - 1]);
 
             /* print out `number` characters from the buffer ! */
             write(1, input + offset, number);
@@ -53,6 +61,11 @@ void skroll (const char *input)
 
             /* flush stdout, and wait for the next step */
             fflush(stdout);
+
+            /* decrease message's length when utf-8 chars disappear to the left */
+            number -= utf8_len(input[offset]);
+            offset += utf8_len(input[offset]);
+
             usleep(delay*1000000);
         }
     /* magnolia ? FOWEVA ! */

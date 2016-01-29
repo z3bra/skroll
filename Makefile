@@ -1,37 +1,23 @@
-PREFIX:=/usr
-MANPREFIX:=${PREFIX}/share/man
-
 CC = cc
-LD= ${CC}
-RM = rm
-GZ = gzip
-CFLAGS = -Wall -pedantic
+LD = $(CC)
+
+PREFIX = /usr/local
+MANPREFIX = ${PREFIX}/share/man
+
+CFLAGS = -Wall -Wextra -pedantic
 LDFLAGS =
 
-.SUFFIXES: .c .o .gz
-.PHONY : all clean install uninstall
-
-.c.o:
-	@echo -e "CC $<"
-	@${CC} -c ${CFLAGS} $< -o $@
+.PHONY : clean install uninstall
 
 skroll: skroll.o
-	@echo -e "LD skroll"
-	@${LD} $^ -o $@ ${LDFLAGS}
-
-skroll.1.gz: skroll.1
-	@echo "GZ $<"
-	@${GZ} -c $< > $@
-
-all : skroll skroll.1.gz
 
 clean :
-	${RM} -f skroll *.o *.gz *~
+	rm -f skroll *.o
 
-install: skroll skroll.1.gz
+install: skroll skroll.1
 	install -D -m 0755 skroll ${DESTDIR}${PREFIX}/bin/skroll
-	install -D -m 0644 skroll.1.gz ${DESTDIR}${MANPREFIX}/man1/skroll.1.gz
+	install -D -m 0644 skroll.1 ${DESTDIR}${MANPREFIX}/man1/skroll.1
 
 uninstall:
 	${RM} ${DESTDIR}${PREFIX}/bin/skroll
-	${RM} ${DESTDIR}${MANPREFIX}/man1/skroll.1.gz
+	${RM} ${DESTDIR}${MANPREFIX}/man1/skroll.1

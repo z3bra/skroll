@@ -62,7 +62,7 @@ void skroll (const char *input)
             /* flush stdout, and wait for the next step */
             fflush(stdout);
 
-            /* decrease message's length when utf-8 chars disappear to the left */
+            /* decrease length when utf-8 chars disappear to the left */
             number -= utf8_len(input[offset]);
             offset += utf8_len(input[offset]);
 

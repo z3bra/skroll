@@ -1,14 +1,21 @@
-┏━┓╻┏ ┏━┓┏━┓╻  ╻
-┗━┓┣┻┓┣┳┛┃ ┃┃  ┃
-┗━┛╹ ╹╹┗╸┗━┛┗━╸┗━╸
-                -- by z3bra
-===========================
+skroll
+======
 
 Skroll is a small utility that you can use to make a text scroll.
 Pipe text to it, and it will scroll a given number of letters from right to
 left.
 
-You can pass a few options to it, to change its behavior:
+Installation
+------------
+As easy as 1,2,3! Build and install by issuing the following commands:
+
+	$ make
+	# make install
+
+Usage
+-----
+See the skroll(1) manpage for detailed usage. Here is a quick reference
+to get started using it:
 
     # loop indefinitely
     echo shblah | skroll -l
@@ -18,3 +25,7 @@ You can pass a few options to it, to change its behavior:
 
     # rotate letters every <x> seconds
     echo shblah | skroll -d 0.25
+
+License
+-------
+ISC License. See LICENSE file for copyright and license details.
